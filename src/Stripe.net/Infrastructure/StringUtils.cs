@@ -6,6 +6,9 @@ namespace Stripe.Infrastructure
 
     internal static class StringUtils
     {
+        private static Regex apiKeyRegex
+            = new Regex(@"\A\S*\z", RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
         /// <summary>Converts the string to snake case.</summary>
         /// <param name="str">The string to convert.</param>
         /// <returns>A string with the contents of the input string converted to snake_case.</returns>
@@ -51,6 +54,26 @@ namespace Stripe.Infrastructure
             }
 
             return result == 0;
+        }
+
+        /// <summary>
+        /// Validates that the API key doesn't contain any whitespace characters.
+        /// </summary>
+        /// <param name="apiKey">The API key.</param>
+        /// <returns>The API key, if valid.</returns>
+        /// <exception name="StripeException">
+        /// Thrown if the API key contains whitespace characters.
+        /// </exception>
+        public static string ValidateApiKey(string apiKey)
+        {
+            if (!apiKeyRegex.IsMatch(apiKey ?? string.Empty))
+            {
+                var message = $"Invalid API key: \"{apiKey}\". API keys may not contain whitespace "
+                    + "characters.";
+                throw new StripeException(message);
+            }
+
+            return apiKey;
         }
     }
 }

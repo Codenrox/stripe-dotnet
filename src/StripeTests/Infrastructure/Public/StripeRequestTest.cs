@@ -3,7 +3,6 @@ namespace StripeTests
     using System.Net.Http;
     using System.Threading.Tasks;
     using Stripe;
-    using Stripe.Infrastructure;
     using StripeTests.Infrastructure.TestData;
     using Xunit;
 
@@ -85,6 +84,27 @@ namespace StripeTests
             Assert.True(request.StripeHeaders.ContainsKey("Stripe-Account"));
             Assert.Equal("acct_456", request.StripeHeaders["Stripe-Account"]);
             Assert.Null(request.Content);
+        }
+
+        [Fact]
+        public void Ctor_ThrowsIfNoApiKey()
+        {
+            var origKey = StripeConfiguration.ApiKey;
+
+            try
+            {
+                StripeConfiguration.ApiKey = null;
+
+                var options = new TestOptions();
+                var requestOptions = new RequestOptions();
+
+                Assert.Throws<StripeException>(() =>
+                    new StripeRequest(HttpMethod.Get, "/get", options, requestOptions));
+            }
+            finally
+            {
+                StripeConfiguration.ApiKey = origKey;
+            }
         }
     }
 }

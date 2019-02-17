@@ -31,9 +31,7 @@ namespace Stripe
 
             this.Uri = BuildUri(method, path, options, requestOptions);
 
-            this.AuthorizationHeader = new AuthenticationHeaderValue(
-                "Bearer",
-                requestOptions?.ApiKey ?? StripeConfiguration.ApiKey);
+            this.AuthorizationHeader = BuildAuthorizationHeader(requestOptions);
 
             this.StripeHeaders = BuildStripeHeaders(method, requestOptions);
         }
@@ -97,6 +95,24 @@ namespace Stripe
             }
 
             return new Uri(b.ToString());
+        }
+
+        private static AuthenticationHeaderValue BuildAuthorizationHeader(
+            RequestOptions requestOptions)
+        {
+            string apiKey = requestOptions?.ApiKey ?? StripeConfiguration.ApiKey;
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                var message = "No API key provided. Set your API key using "
+                    + "`StripeConfiguration.ApiKey = \"<API-KEY>\"`. You can generate API keys "
+                    + "from the Stripe web interface. See "
+                    + "https://stripe.com/docs/api/authentication for details or contact support "
+                    + "at https://support.stripe.com/email if you have questions";
+                throw new StripeException(message);
+            }
+
+            return new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
         private static Dictionary<string, string> BuildStripeHeaders(
